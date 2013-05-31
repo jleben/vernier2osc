@@ -33,18 +33,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <string.h>
 #include <memory.h>
+#include <assert.h>
 
-#ifdef TARGET_OS_WIN
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 #pragma warning(disable: 4996)
 #include <windows.h>
 #endif
-//#ifdef TARGET_OS_LINUX
+
+#ifdef UNIX
 #include <time.h>
-//#endif
+#endif
+
+/*
 #ifdef TARGET_OS_MAC
 #include <Carbon/Carbon.h>
 #endif
+*/
 
 #include "NGIO_lib_interface.h"
 
@@ -56,14 +61,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MEASUREMENT_PERIOD 0.001
 #define OSC_MESSAGE_PERIOD 0.005
 
-static void OSSleep(unsigned int msToSleep);
-
 static void sleep_ms(unsigned int msToSleep)
 {
+#if defined(_WIN32)
+    ::Sleep(msToSleep);
+#elif defined(UNIX)
     struct timespec tv;
     tv.tv_sec = msToSleep/1000;
     tv.tv_nsec = (msToSleep % 1000) * 1000000;
     nanosleep(&tv, NULL);
+#else
+    bool OS_CAN_SLEEP = false;
+    assert(OS_CAN_SLEEP);
+#endif
 }
 
 NGIO_LIBRARY_HANDLE g_hNGIOlib = NULL;
@@ -92,6 +102,9 @@ static bool send_measurements(int channel_count, float *channel_data, lo_address
     int res = lo_send_bundle( addr, bundle );
 #endif
     int res = lo_send_message( address, "/sensor", msg );
+
+    lo_message_free(msg);
+
     if( res == -1 ) {
         printf("Sending OSC failed!\n");
         return false;
@@ -136,8 +149,8 @@ int main(int argc, char* argv[])
 	sprintf(tmpstring, "NGIO_DeviceCheck is linked to NGIO library version %02d.%02d .\n", majorVersion, minorVersion);
 	printf(tmpstring);
 
-#ifdef TARGET_OS_WIN
-	OSSleep(500);//Give Jungo device driver time to find the LabQuest.
+#ifdef _WIN32
+    sleep_ms(500); //Give Jungo device driver time to find the LabQuest.
 #endif
 
 	if (g_hNGIOlib)
@@ -353,23 +366,4 @@ int main(int argc, char* argv[])
 	g_hNGIOlib = NULL;
 
 	return 0;
-}
-
-void OSSleep(
-	unsigned int msToSleep)//milliseconds
-{
-#ifdef TARGET_OS_WIN
-	::Sleep(msToSleep);
-#endif
-#ifdef TARGET_OS_LINUX
-  struct timeval tv;
-  unsigned int usToSleep = msToSleep*1000;
-  tv.tv_sec = usToSleep/1000000;
-  tv.tv_usec = usToSleep % 1000000;
-  select (0, NULL, NULL, NULL, &tv);
-#endif
-#ifdef TARGET_OS_MAC
-	AbsoluteTime absTime = ::AddDurationToAbsolute(msToSleep * durationMillisecond, ::UpTime());
-	::MPDelayUntil(&absTime);
-#endif
 }
