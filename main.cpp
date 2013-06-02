@@ -115,7 +115,6 @@ static bool send_measurements(int channel_count, float *channel_data, lo_address
 
 int main(int argc, char* argv[])
 {
-	char tmpstring[300];
 	gtype_uint16 majorVersion, minorVersion;
 	gtype_int32 status = 0;
 	gtype_uint32 sig, mask, deviceType;
@@ -145,9 +144,9 @@ int main(int argc, char* argv[])
 	g_hNGIOlib = NGIO_Init();
 	NGIO_GetDLLVersion(g_hNGIOlib, &majorVersion, &minorVersion);
 
-	printf("NGIO_DeviceCheck version 3.2 . \n");
-	sprintf(tmpstring, "NGIO_DeviceCheck is linked to NGIO library version %02d.%02d .\n", majorVersion, minorVersion);
-	printf(tmpstring);
+    printf("NGIO_DeviceCheck version '3.2'.\n");
+    printf("NGIO_DeviceCheck is linked to NGIO library version '%02d.%02d'.\n", majorVersion, minorVersion);
+
 
 #ifdef _WIN32
     sleep_ms(500); //Give Jungo device driver time to find the LabQuest.
