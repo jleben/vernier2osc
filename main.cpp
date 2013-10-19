@@ -65,7 +65,7 @@ static void sleep_ms(unsigned int msToSleep)
 {
 #if defined(_WIN32)
     ::Sleep(msToSleep);
-#elif defined(UNIX)
+#elif defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))
     struct timespec tv;
     tv.tv_sec = msToSleep/1000;
     tv.tv_nsec = (msToSleep % 1000) * 1000000;
