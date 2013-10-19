@@ -41,5 +41,6 @@ elseif(UNIX)
     include_directories( /usr/include/NGIO-1.0.0 )
     include_directories( /usr/include/lo )
     target_link_libraries(vernier2osc NGIO usb-1.0 lo)
+    install( TARGETS vernier2osc DESTINATION bin )
 
 endif()
